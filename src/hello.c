@@ -12,7 +12,7 @@
 @end
 */
 
-#include "myproject_classes.h"
+#include "zproject_pg_classes.h"
 
 int main (int argc, char *argv [])
 {

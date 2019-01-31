@@ -1,4 +1,9 @@
-<project script = "zproject.gsl">
+<project name= "zproject_pg"
+         script = "zproject.gsl">
+    <target name = "cmake" />
+    <target name = "autotools" />
+
     <use project = "czmq" />
     <main name = "hello" private = "1" />
+    <class name="testclass" /> 
 </project>

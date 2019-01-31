@@ -13,7 +13,7 @@
 # Process this file with autoconf to produce a configure script.
 AC_PREREQ(2.61)
 #
-AC_INIT([myproject],[0.0.0],[email@hostname.com])
+AC_INIT([zproject_pg],[0.0.0],[email@hostname.com])
 
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR(config)
@@ -26,11 +26,11 @@ PV_MAJOR=`echo $PACKAGE_VERSION | cut -d . -f 1`
 PV_MINOR=`echo $PACKAGE_VERSION | cut -d . -f 2`
 PV_PATCH=`echo $PACKAGE_VERSION | cut -d . -f 3`
 AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MAJOR],[$PV_MAJOR],
-    [MYPROJECT major version])
+    [ZPROJECT_PG major version])
 AC_DEFINE_UNQUOTED([PACKAGE_VERSION_MINOR],[$PV_MINOR],
-    [MYPROJECT minor version])
+    [ZPROJECT_PG minor version])
 AC_DEFINE_UNQUOTED([PACKAGE_VERSION_PATCH],[$PV_PATCH],
-    [MYPROJECT patchlevel])
+    [ZPROJECT_PG patchlevel])
 # This lets us use PACKAGE_VERSION in Makefiles
 AC_SUBST(PACKAGE_VERSION)
 
@@ -41,7 +41,7 @@ AC_SUBST(PACKAGE_VERSION)
 # know exactly what you're doing and have read and understand
 # http://www.gnu.org/software/libtool/manual/html_node/Updating-version-info.html
 #
-# libmyproject -version-info
+# libzproject_pg -version-info
 LTVER="0:0:0"
 AC_SUBST(LTVER)
 
@@ -49,7 +49,7 @@ AC_SUBST(LTVER)
 AM_CONDITIONAL([USING_VPATH], [test "x${srcdir}" != "x."])
 
 # Capture c flags
-MYPROJECT_ORIG_CFLAGS="${CFLAGS:-none}"
+ZPROJECT_PG_ORIG_CFLAGS="${CFLAGS:-none}"
 
 # Checks for programs
 AC_PROG_CC
@@ -73,13 +73,13 @@ AM_CONDITIONAL(WITH_CPPCHECK, $WITH_CPPCHECK)
 AC_MSG_CHECKING([whether to enable GCov])
 AC_ARG_WITH(gcov, [AS_HELP_STRING([--with-gcov=yes/no],
                   [With GCC Code Coverage reporting])],
-                  [MYPROJECT_GCOV="$withval"])
+                  [ZPROJECT_PG_GCOV="$withval"])
 
-if test "x${MYPROJECT_GCOV}" == "xyes"; then
+if test "x${ZPROJECT_PG_GCOV}" == "xyes"; then
     CFLAGS="-O0 -g -fprofile-arcs -ftest-coverage"
 
-    if test "x${MYPROJECT_ORIG_CFLAGS}" != "xnone"; then
-        CFLAGS="${CFLAGS} ${MYPROJECT_ORIG_CFLAGS}"
+    if test "x${ZPROJECT_PG_ORIG_CFLAGS}" != "xnone"; then
+        CFLAGS="${CFLAGS} ${ZPROJECT_PG_ORIG_CFLAGS}"
     fi
     AM_CONDITIONAL(WITH_GCOV, true)
     AC_MSG_RESULT([yes])
@@ -92,9 +92,9 @@ fi
 AC_MSG_CHECKING([whether to enable ASan])
 AC_ARG_ENABLE(address-sanitizer, [AS_HELP_STRING([--enable-address-sanitizer=yes/no],
                   [Build with GCC Address Sanitizer instrumentation])],
-                  [MYPROJECT_ASAN="$enableval"])
+                  [ZPROJECT_PG_ASAN="$enableval"])
 
-if test "x${MYPROJECT_ASAN}" == "xyes"; then
+if test "x${ZPROJECT_PG_ASAN}" == "xyes"; then
     CFLAGS="${CFLAGS} -fsanitize=address"
     CXXFLAGS="${CXXFLAGS} -fsanitize=address"
 
@@ -181,7 +181,7 @@ AS_CASE([x"${with_libzmq}"],
 dnl We do not abort right now, because the maintainer/developer may have
 dnl something particular in mind, e.g. to build just parts of a project.
 AS_IF([test x"${search_libzmq}" = xno],
-    [AC_MSG_WARN([Required dependency on libzmq was explicitly disabled during configuration by '--with-libzmq=no'; subsequent full build of myproject may fail])])
+    [AC_MSG_WARN([Required dependency on libzmq was explicitly disabled during configuration by '--with-libzmq=no'; subsequent full build of zproject_pg may fail])])
 
 AS_IF([test x"${search_libzmq}" = xyes], [
     # Archive previously detected and supplied flags
@@ -265,7 +265,7 @@ AS_CASE([x"${with_libczmq}"],
 dnl We do not abort right now, because the maintainer/developer may have
 dnl something particular in mind, e.g. to build just parts of a project.
 AS_IF([test x"${search_libczmq}" = xno],
-    [AC_MSG_WARN([Required dependency on czmq was explicitly disabled during configuration by '--with-libczmq=no'; subsequent full build of myproject may fail])])
+    [AC_MSG_WARN([Required dependency on czmq was explicitly disabled during configuration by '--with-libczmq=no'; subsequent full build of zproject_pg may fail])])
 
 AS_IF([test x"${search_libczmq}" = xyes], [
     # Archive previously detected and supplied flags
@@ -334,11 +334,11 @@ AC_SUBST(pkg_config_libs_private, $PKGCFG_LIBS_PRIVATE)
 AC_SUBST(pkg_config_names_private, $PKGCFG_NAMES_PRIVATE)
 
 # Platform specific checks
-myproject_on_mingw32="no"
-myproject_on_cygwin="no"
-myproject_on_android="no"
-myproject_on_linux="no"
-myproject_on_gnu="no"
+zproject_pg_on_mingw32="no"
+zproject_pg_on_cygwin="no"
+zproject_pg_on_android="no"
+zproject_pg_on_linux="no"
+zproject_pg_on_gnu="no"
 
 # Host specific checks
 AC_CANONICAL_HOST
@@ -351,49 +351,49 @@ AC_ARG_WITH([docs],
     [with_docs=$withval])
 
 if test "x$with_docs" = "xno"; then
-    myproject_build_doc="no"
-    myproject_install_man="no"
+    zproject_pg_build_doc="no"
+    zproject_pg_install_man="no"
 else
     # Determine whether or not documentation should be built and installed.
-    myproject_build_doc="yes"
-    myproject_install_man="yes"
+    zproject_pg_build_doc="yes"
+    zproject_pg_install_man="yes"
 
     # Check for asciidoc and xmlto and don't build the docs if these are not installed.
-    AC_CHECK_PROG(myproject_have_asciidoc, asciidoc, yes, no)
-    AC_CHECK_PROG(myproject_have_xmlto, xmlto, yes, no)
-    if test "x$myproject_have_asciidoc" = "xno" -o "x$myproject_have_xmlto" = "xno"; then
+    AC_CHECK_PROG(zproject_pg_have_asciidoc, asciidoc, yes, no)
+    AC_CHECK_PROG(zproject_pg_have_xmlto, xmlto, yes, no)
+    if test "x$zproject_pg_have_asciidoc" = "xno" -o "x$zproject_pg_have_xmlto" = "xno"; then
         if test "x$with_docs" = "xyes" ; then
             AC_MSG_ERROR([Build with docs was explicitly requested, but tools are not available])
         fi
-        myproject_build_doc="no"
+        zproject_pg_build_doc="no"
         # Tarballs built with 'make dist' ship with prebuilt documentation.
-        if ! test -f doc/myproject.7; then
-            myproject_install_man="no"
-            AC_MSG_WARN([You are building an unreleased version of MYPROJECT and asciidoc or xmlto are not installed.])
+        if ! test -f doc/zproject_pg.7; then
+            zproject_pg_install_man="no"
+            AC_MSG_WARN([You are building an unreleased version of ZPROJECT_PG and asciidoc or xmlto are not installed.])
             AC_MSG_WARN([Documentation will not be built and manual pages will not be installed.])
         fi
     fi
 fi
 AC_MSG_CHECKING([whether to build documentation])
-AC_MSG_RESULT([$myproject_build_doc])
+AC_MSG_RESULT([$zproject_pg_build_doc])
 AC_MSG_CHECKING([whether to install manpages])
-AC_MSG_RESULT([$myproject_install_man])
+AC_MSG_RESULT([$zproject_pg_install_man])
 
-# Set some default features required by libmyproject code.
-CPPFLAGS="-DMYPROJECT_INTERNAL_BUILD -D_REENTRANT -D_THREAD_SAFE $CPPFLAGS"
+# Set some default features required by libzproject_pg code.
+CPPFLAGS="-DZPROJECT_PG_INTERNAL_BUILD -D_REENTRANT -D_THREAD_SAFE $CPPFLAGS"
 
 # OS-specific tests
 case "${host_os}" in
     *linux*)
         # Define on Linux to enable all library features
         CPPFLAGS="-D_GNU_SOURCE -DLINUX $CPPFLAGS"
-        AC_DEFINE(MYPROJECT_HAVE_LINUX, 1, [Have Linux OS])
-        myproject_on_linux="yes"
+        AC_DEFINE(ZPROJECT_PG_HAVE_LINUX, 1, [Have Linux OS])
+        zproject_pg_on_linux="yes"
 
         case "${host_os}" in
             *android*)
-                AC_DEFINE(MYPROJECT_HAVE_ANDROID, 1, [Have Android OS])
-                myproject_on_android="yes"
+                AC_DEFINE(ZPROJECT_PG_HAVE_ANDROID, 1, [Have Android OS])
+                zproject_pg_on_android="yes"
             ;;
         esac
         ;;
@@ -402,74 +402,74 @@ case "${host_os}" in
         CPPFLAGS="-D_PTHREADS $CPPFLAGS"
         # Allow definitions of common OS-provided functions that are not in old standards
         CPPFLAGS="-D__EXTENSIONS__ $CPPFLAGS"
-        AC_DEFINE(MYPROJECT_HAVE_SOLARIS, 1, [Have Solaris OS])
+        AC_DEFINE(ZPROJECT_PG_HAVE_SOLARIS, 1, [Have Solaris OS])
         CFLAGS="${CFLAGS} -lsocket -lssp"
         ;;
     *freebsd*)
         # Define on FreeBSD to enable all library features
         CPPFLAGS="-D__BSD_VISIBLE $CPPFLAGS"
-        AC_DEFINE(MYPROJECT_HAVE_FREEBSD, 1, [Have FreeBSD OS])
+        AC_DEFINE(ZPROJECT_PG_HAVE_FREEBSD, 1, [Have FreeBSD OS])
         ;;
     *darwin*)
         # Define on Darwin to enable all library features
         CPPFLAGS="-D_DARWIN_C_SOURCE $CPPFLAGS"
-        AC_DEFINE(MYPROJECT_HAVE_OSX, 1, [Have DarwinOSX OS])
+        AC_DEFINE(ZPROJECT_PG_HAVE_OSX, 1, [Have DarwinOSX OS])
         ;;
     *netbsd*)
         # Define on NetBSD to enable all library features
         CPPFLAGS="-D_NETBSD_SOURCE $CPPFLAGS"
-        AC_DEFINE(MYPROJECT_HAVE_NETBSD, 1, [Have NetBSD OS])
+        AC_DEFINE(ZPROJECT_PG_HAVE_NETBSD, 1, [Have NetBSD OS])
         ;;
     *openbsd*)
         # Define on OpenBSD to enable all library features
         CPPFLAGS="-D_BSD_SOURCE $CPPFLAGS"
-        AC_DEFINE(MYPROJECT_HAVE_OPENBSD, 1, [Have OpenBSD OS])
+        AC_DEFINE(ZPROJECT_PG_HAVE_OPENBSD, 1, [Have OpenBSD OS])
         ;;
     *nto-qnx*)
-        AC_DEFINE(MYPROJECT_HAVE_QNXNTO, 1, [Have QNX Neutrino OS])
+        AC_DEFINE(ZPROJECT_PG_HAVE_QNXNTO, 1, [Have QNX Neutrino OS])
         ;;
     *aix*)
-        AC_DEFINE(MYPROJECT_HAVE_AIX, 1, [Have AIX OS])
+        AC_DEFINE(ZPROJECT_PG_HAVE_AIX, 1, [Have AIX OS])
         ;;
     *hpux*)
         # Define on HP-UX to enable all library features
         CPPFLAGS="-D_POSIX_C_SOURCE=200112L"
-        AC_DEFINE(MYPROJECT_HAVE_HPUX, 1, [Have HPUX OS])
+        AC_DEFINE(ZPROJECT_PG_HAVE_HPUX, 1, [Have HPUX OS])
         ;;
     *mingw32*)
         # Disable format error due to incomplete ANSI C
         CFLAGS="-Wno-error=format -Wno-unused-function -Wno-unused-variable -D_XOPEN_SOURCE $CFLAGS"
         CPPFLAGS="-Wno-error=format -Wno-unused-function -Wno-unused-variable -D_XOPEN_SOURCE $CPPFLAGS"
-        AC_DEFINE(MYPROJECT_HAVE_WINDOWS, 1, [Have Windows OS])
-        AC_DEFINE(MYPROJECT_HAVE_MINGW32, 1, [Have MinGW32])
+        AC_DEFINE(ZPROJECT_PG_HAVE_WINDOWS, 1, [Have Windows OS])
+        AC_DEFINE(ZPROJECT_PG_HAVE_MINGW32, 1, [Have MinGW32])
         AC_CHECK_HEADERS(windows.h)
-        myproject_on_mingw32="yes"
-        myproject_install_man="no"
+        zproject_pg_on_mingw32="yes"
+        zproject_pg_install_man="no"
         ;;
     *mingw64*)
         # Define on MINGW64 to enable all libeary features
         # Disable format error due to incomplete ANSI C
         CFLAGS="-Wno-error=format -Wno-unused-function -Wno-unused-variable -D_XOPEN_SOURCE $CFLAGS"
         CPPFLAGS="-Wno-error=format -Wno-unused-function -Wno-unused-variable -D_XOPEN_SOURCE $CPPFLAGS"
-        AC_DEFINE(MYPROJECT_HAVE_WINDOWS, 1, [Have Windows OS])
-        AC_DEFINE(MYPROJECT_HAVE_MINGW32, 1, [Have MinGW32])
+        AC_DEFINE(ZPROJECT_PG_HAVE_WINDOWS, 1, [Have Windows OS])
+        AC_DEFINE(ZPROJECT_PG_HAVE_MINGW32, 1, [Have MinGW32])
         AC_CHECK_HEADERS(windows.h)
-        myproject_on_mingw32="yes"
-        myproject_install_man="no"
+        zproject_pg_on_mingw32="yes"
+        zproject_pg_install_man="no"
         ;;
     *cygwin*)
         # Define on Cygwin to enable all library features
         CPPFLAGS="-D_GNU_SOURCE $CPPFLAGS"
-        AC_DEFINE(MYPROJECT_HAVE_CYGWIN, 1, [Have Cygwin])
-        myproject_on_cygwin="yes"
+        AC_DEFINE(ZPROJECT_PG_HAVE_CYGWIN, 1, [Have Cygwin])
+        zproject_pg_on_cygwin="yes"
         ;;
     gnu*)
         # Define on GNU/Hurd to enable all library features
         if test "x$GXX" = "xyes"; then
             CPPFLAGS="-D_GNU_SOURCE $CPPFLAGS"
         fi
-        AC_DEFINE(MYPROJECT_HAVE_GNU, 1, [Have GNU/Hurd OS])
-        myproject_on_gnu="yes"
+        AC_DEFINE(ZPROJECT_PG_HAVE_GNU, 1, [Have GNU/Hurd OS])
+        zproject_pg_on_gnu="yes"
         ;;
     *)
         AC_MSG_ERROR([unsupported system: ${host_os}])
@@ -501,13 +501,13 @@ AC_C_VOLATILE
 AC_C_BIGENDIAN
 
 AM_CONDITIONAL(ENABLE_SHARED, test "x$enable_shared" = "xyes")
-AM_CONDITIONAL(ON_MINGW, test "x$myproject_on_mingw32" = "xyes")
-AM_CONDITIONAL(ON_CYGWIN, test "x$myproject_on_cygwin" = "xyes")
-AM_CONDITIONAL(ON_ANDROID, test "x$myproject_on_android" = "xyes")
-AM_CONDITIONAL(ON_LINUX, test "x$myproject_on_linux" = "xyes")
-AM_CONDITIONAL(ON_GNU, test "x$myproject_on_gnu" = "xyes")
-AM_CONDITIONAL(INSTALL_MAN, test "x$myproject_install_man" = "xyes")
-AM_CONDITIONAL(BUILD_DOC, test "x$myproject_build_doc" = "xyes")
+AM_CONDITIONAL(ON_MINGW, test "x$zproject_pg_on_mingw32" = "xyes")
+AM_CONDITIONAL(ON_CYGWIN, test "x$zproject_pg_on_cygwin" = "xyes")
+AM_CONDITIONAL(ON_ANDROID, test "x$zproject_pg_on_android" = "xyes")
+AM_CONDITIONAL(ON_LINUX, test "x$zproject_pg_on_linux" = "xyes")
+AM_CONDITIONAL(ON_GNU, test "x$zproject_pg_on_gnu" = "xyes")
+AM_CONDITIONAL(INSTALL_MAN, test "x$zproject_pg_install_man" = "xyes")
+AM_CONDITIONAL(BUILD_DOC, test "x$zproject_pg_build_doc" = "xyes")
 
 AC_ARG_ENABLE([dist_cmakefiles],
     AS_HELP_STRING([--enable-dist_cmakefiles],
@@ -532,6 +532,16 @@ AC_ARG_ENABLE([hello],
 AM_CONDITIONAL([ENABLE_HELLO], [test x$enable_hello != xno])
 AM_COND_IF([ENABLE_HELLO], [AC_MSG_NOTICE([ENABLE_HELLO defined])])
 
+# Check for zproject_pg_selftest intent
+AC_ARG_ENABLE([zproject_pg_selftest],
+    AS_HELP_STRING([--enable-zproject_pg_selftest],
+        [Compile 'zproject_pg_selftest' in src [default=yes]]),
+    [enable_zproject_pg_selftest=$enableval],
+    [enable_zproject_pg_selftest=yes])
+
+AM_CONDITIONAL([ENABLE_ZPROJECT_PG_SELFTEST], [test x$enable_zproject_pg_selftest != xno])
+AM_COND_IF([ENABLE_ZPROJECT_PG_SELFTEST], [AC_MSG_NOTICE([ENABLE_ZPROJECT_PG_SELFTEST defined])])
+
 # Checks for library functions.
 AC_TYPE_SIGNAL
 AC_CHECK_FUNCS(perror gettimeofday memset getifaddrs)
@@ -544,8 +554,8 @@ AM_CONDITIONAL([ENABLE_DRAFTS], [test x$enable_drafts != xno])
 
 if test "x$enable_drafts" = "xyes"; then
     AC_MSG_NOTICE([Building stable and legacy API + draft API])
-    AC_DEFINE(MYPROJECT_BUILD_DRAFT_API, 1, [Provide draft classes and methods])
-    AC_SUBST(pkg_config_defines, "-DMYPROJECT_BUILD_DRAFT_API=1")
+    AC_DEFINE(ZPROJECT_PG_BUILD_DRAFT_API, 1, [Provide draft classes and methods])
+    AC_SUBST(pkg_config_defines, "-DZPROJECT_PG_BUILD_DRAFT_API=1")
 else
     AC_MSG_NOTICE([Building stable and legacy API (no draft API)])
     AC_SUBST(pkg_config_defines, "")
@@ -582,7 +592,10 @@ AS_IF([test "x$enable_Werror" = "xyes" || test "x$enable_Werror" = "xauto"],
 
 # Specify output files
 AC_CONFIG_FILES([Makefile
-                ])
+                 doc/Makefile
+                 include/Makefile
+                 src/libzproject_pg.pc
+                 ])
 
 
 AC_OUTPUT
@@ -622,13 +635,13 @@ echo C++ compiler.................. : $CXX
 echo C++ compiler flags............ : $CXXFLAGS
 echo Configure date................ : $BUILD_DATE
 echo Build architecture............ : $BUILD_ARCH
-echo Build docs.................... : $myproject_build_doc
+echo Build docs.................... : $zproject_pg_build_doc
 echo Build host.................... : $BUILD_HOST
 echo Build user.................... : $USER
 echo Draft API..................... : $enable_drafts
 echo Python Bindings............... : $ZPROJECT_BINDINGS_PYTHON
 echo Install dir................... : $prefix
-echo Install man pages............. : $myproject_install_man
+echo Install man pages............. : $zproject_pg_install_man
 
 echo
 echo Help:

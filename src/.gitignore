@@ -4,6 +4,9 @@
 ################################################################################
 
 # Ignore files generated from .in templates
+# + pkgconfig:
+libzproject_pg.pc
+# + main->extra sources (if any):
 
 # + config files for mains (if any):
 

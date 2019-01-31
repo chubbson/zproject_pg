@@ -7,7 +7,7 @@
 # Project setup
 ########################################################################
 cmake_minimum_required(VERSION 2.8.8)
-project(myproject)
+project(zproject_pg)
 enable_language(C)
 enable_testing()
 
@@ -27,7 +27,7 @@ set(pkg_config_names_private "")
 ########################################################################
 OPTION (ENABLE_DRAFTS "Build and install draft classes and methods" ON)
 IF (ENABLE_DRAFTS)
-    ADD_DEFINITIONS (-DMYPROJECT_BUILD_DRAFT_API)
+    ADD_DEFINITIONS (-DZPROJECT_PG_BUILD_DRAFT_API)
 ENDIF (ENABLE_DRAFTS)
 
 ########################################################################
@@ -129,21 +129,193 @@ ENDIF (CZMQ_FOUND)
 ########################################################################
 # version
 ########################################################################
-set(MYPROJECT_VERSION_MAJOR 0)
-set(MYPROJECT_VERSION_MINOR 0)
-set(MYPROJECT_VERSION_PATCH 0)
-set(MYPROJECT_VERSION "${MYPROJECT_VERSION_MAJOR}.${MYPROJECT_VERSION_MINOR}.${MYPROJECT_VERSION_PATCH}")
-message(STATUS "Detected MYPROJECT Version - ${MYPROJECT_VERSION}")
+set(ZPROJECT_PG_VERSION_MAJOR 0)
+set(ZPROJECT_PG_VERSION_MINOR 0)
+set(ZPROJECT_PG_VERSION_PATCH 0)
+set(ZPROJECT_PG_VERSION "${ZPROJECT_PG_VERSION_MAJOR}.${ZPROJECT_PG_VERSION_MINOR}.${ZPROJECT_PG_VERSION_PATCH}")
+message(STATUS "Detected ZPROJECT_PG Version - ${ZPROJECT_PG_VERSION}")
 
 
 ########################################################################
 # includes
 ########################################################################
-set (myproject_headers
+set (zproject_pg_headers
+    include/zproject_pg_library.h
+    include/zproject_pg.h
 )
 
-source_group ("Header Files" FILES ${myproject_headers})
-install(FILES ${myproject_headers} DESTINATION include)
+IF (ENABLE_DRAFTS)
+    list(APPEND zproject_pg_headers
+        include/testclass.h
+    )
+ENDIF (ENABLE_DRAFTS)
+
+source_group ("Header Files" FILES ${zproject_pg_headers})
+install(FILES ${zproject_pg_headers} DESTINATION include)
+
+########################################################################
+# library
+########################################################################
+
+
+include_directories("${SOURCE_DIR}/src" "${SOURCE_DIR}/include" "${CMAKE_BINARY_DIR}")
+set (zproject_pg_sources
+)
+
+IF (ENABLE_DRAFTS)
+    list (APPEND zproject_pg_sources
+        src/testclass.c
+    )
+ENDIF (ENABLE_DRAFTS)
+
+IF (ENABLE_DRAFTS)
+    list (APPEND zproject_pg_sources
+        src/zproject_pg_private_selftest.c
+    )
+ENDIF (ENABLE_DRAFTS)
+
+source_group("Source Files" FILES ${zproject_pg_sources})
+
+
+option(ZPROJECT_PG_BUILD_SHARED "Whether or not to build the shared object" ON)
+option(ZPROJECT_PG_BUILD_STATIC "Whether or not to build the static archive" ON)
+
+if (NOT ZPROJECT_PG_BUILD_SHARED AND NOT ZPROJECT_PG_BUILD_STATIC)
+  message(FATAL_ERROR "Neither static nor shared library build enabled")
+endif()
+
+IF (NOT MSVC)
+  # avoid building everything twice for shared + static
+  # only on *nix, as Windows needs different preprocessor defines in static builds
+  add_library (zproject_pg_objects OBJECT ${zproject_pg_sources})
+  set_property(TARGET zproject_pg_objects PROPERTY POSITION_INDEPENDENT_CODE ON)
+ENDIF (NOT MSVC)
+
+# shared
+if (ZPROJECT_PG_BUILD_SHARED)
+  IF (MSVC)
+    add_library(zproject_pg SHARED ${zproject_pg_sources})
+  ELSE (MSVC)
+    add_library(zproject_pg SHARED $<TARGET_OBJECTS:zproject_pg_objects>)
+  ENDIF (MSVC)
+
+  set_target_properties (zproject_pg PROPERTIES
+    PUBLIC_HEADER "${public_headers}"
+    DEFINE_SYMBOL "ZPROJECT_PG_EXPORTS"
+    SOVERSION "0"
+    VERSION "${ZPROJECT_PG_VERSION}"
+    COMPILE_DEFINITIONS "DLL_EXPORT"
+    OUTPUT_NAME "zproject_pg"
+    PREFIX "lib"
+  )
+
+  target_link_libraries(zproject_pg
+    PUBLIC ${MORE_LIBRARIES}
+  )
+
+  install(TARGETS zproject_pg
+    EXPORT zproject_pg-targets
+    LIBRARY DESTINATION "lib${LIB_SUFFIX}" # .so file
+    ARCHIVE DESTINATION "lib${LIB_SUFFIX}" # .lib file
+    RUNTIME DESTINATION bin                # .dll file
+  )
+
+  target_include_directories(zproject_pg
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+  )
+endif()
+
+# static
+if (ZPROJECT_PG_BUILD_STATIC)
+  IF (MSVC)
+    add_library(zproject_pg-static STATIC ${zproject_pg_sources})
+  ELSE (MSVC)
+    add_library(zproject_pg-static STATIC $<TARGET_OBJECTS:zproject_pg_objects>)
+  ENDIF (MSVC)
+
+  set_target_properties(zproject_pg-static PROPERTIES
+    PUBLIC_HEADER "${public_headers}"
+    COMPILE_DEFINITIONS "ZPROJECT_PG_STATIC"
+    OUTPUT_NAME "zproject_pg"
+    PREFIX "lib"
+  )
+
+  target_link_libraries(zproject_pg-static
+    PUBLIC ${MORE_LIBRARIES}
+  )
+
+  install(TARGETS zproject_pg-static
+    EXPORT zproject_pg-targets
+    LIBRARY DESTINATION "lib${LIB_SUFFIX}" # .so file
+    ARCHIVE DESTINATION "lib${LIB_SUFFIX}" # .lib file
+    RUNTIME DESTINATION bin                # .dll file
+  )
+
+  target_include_directories(zproject_pg-static
+    PUBLIC
+      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+      $<INSTALL_INTERFACE:include>
+  )
+  target_compile_definitions(zproject_pg-static
+    PUBLIC ZPROJECT_PG_STATIC
+  )
+
+endif()
+
+
+
+########################################################################
+# pkgconfig
+########################################################################
+set (VERSION "0.0.0")
+set (prefix "${CMAKE_INSTALL_PREFIX}")
+set (exec_prefix "\${prefix}")
+set (libdir "\${prefix}/lib${LIB_SUFFIX}")
+set (includedir "\${prefix}/include")
+IF (ENABLE_DRAFTS)
+    set (pkg_config_defines "-DZPROJECT_PG_BUILD_DRAFT_API=1")
+ELSE (ENABLE_DRAFTS)
+    set (pkg_config_defines "")
+ENDIF (ENABLE_DRAFTS)
+configure_file(
+    "${SOURCE_DIR}/src/libzproject_pg.pc.in"
+    "${SOURCE_DIR}/src/libzproject_pg.pc"
+@ONLY)
+
+install(
+    FILES "${SOURCE_DIR}/src/libzproject_pg.pc"
+    DESTINATION "lib${LIB_SUFFIX}/pkgconfig"
+)
+
+########################################################################
+# installer
+########################################################################
+include(CMakePackageConfigHelpers)
+if (WIN32)
+  set(CMAKECONFIG_INSTALL_DIR "CMake" CACHE STRING "install path for zproject_pgConfig.cmake")
+else()
+  # GNUInstallDirs "DATADIR" wrong here; CMake search path wants "share".
+  set(CMAKECONFIG_INSTALL_DIR "share/cmake/zproject_pg" CACHE STRING "install path for zproject_pgConfig.cmake")
+endif()
+
+if (NOT CMAKE_VERSION VERSION_LESS 3.0)
+  export(EXPORT zproject_pg-targets
+         FILE "${CMAKE_CURRENT_BINARY_DIR}/zproject_pgTargets.cmake")
+endif()
+configure_package_config_file(builds/cmake/Config.cmake.in
+                              "${CMAKE_CURRENT_BINARY_DIR}/zproject_pgConfig.cmake"
+                              INSTALL_DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+write_basic_package_version_file(${CMAKE_CURRENT_BINARY_DIR}/zproject_pgConfigVersion.cmake
+                                 VERSION ${ZPROJECT_PG_VERSION}
+                                 COMPATIBILITY AnyNewerVersion)
+install(EXPORT zproject_pg-targets
+        FILE zproject_pgTargets.cmake
+        DESTINATION ${CMAKECONFIG_INSTALL_DIR})
+install(FILES ${CMAKE_CURRENT_BINARY_DIR}/zproject_pgConfig.cmake
+              ${CMAKE_CURRENT_BINARY_DIR}/zproject_pgConfigVersion.cmake
+              DESTINATION ${CMAKECONFIG_INSTALL_DIR})
 
 ########################################################################
 # executables
@@ -152,17 +324,42 @@ add_executable(
     hello
     "${SOURCE_DIR}/src/hello.c"
 )
-if (TARGET myproject)
+if (TARGET zproject_pg)
 target_link_libraries(
     hello
+    zproject_pg
     ${LIBZMQ_LIBRARIES}
     ${CZMQ_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
 )
 endif()
-if (NOT TARGET myproject AND TARGET myproject-static)
+if (NOT TARGET zproject_pg AND TARGET zproject_pg-static)
 target_link_libraries(
     hello
+    zproject_pg-static
+    ${LIBZMQ_LIBRARIES}
+    ${CZMQ_LIBRARIES}
+    ${OPTIONAL_LIBRARIES}
+    ${OPTIONAL_LIBRARIES_STATIC}
+)
+endif()
+add_executable(
+    zproject_pg_selftest
+    "${SOURCE_DIR}/src/zproject_pg_selftest.c"
+)
+if (TARGET zproject_pg)
+target_link_libraries(
+    zproject_pg_selftest
+    zproject_pg
+    ${LIBZMQ_LIBRARIES}
+    ${CZMQ_LIBRARIES}
+    ${OPTIONAL_LIBRARIES}
+)
+endif()
+if (NOT TARGET zproject_pg AND TARGET zproject_pg-static)
+target_link_libraries(
+    zproject_pg_selftest
+    zproject_pg-static
     ${LIBZMQ_LIBRARIES}
     ${CZMQ_LIBRARIES}
     ${OPTIONAL_LIBRARIES}
@@ -186,6 +383,18 @@ endif()
 set(TEST_CLASSES
 )
 
+IF (ENABLE_DRAFTS)
+    list (APPEND TEST_CLASSES
+    testclass
+    )
+ENDIF (ENABLE_DRAFTS)
+
+IF (ENABLE_DRAFTS)
+    list (APPEND TEST_CLASSES
+    private_classes
+    )
+ENDIF (ENABLE_DRAFTS)
+
 
 add_custom_target(
     copy-selftest-ro ALL
@@ -205,7 +414,7 @@ set_directory_properties(
 foreach(TEST_CLASS ${TEST_CLASSES})
     add_test(
         NAME ${TEST_CLASS}
-        COMMAND myproject_selftest --continue --verbose --test ${TEST_CLASS}
+        COMMAND zproject_pg_selftest --continue --verbose --test ${TEST_CLASS}
     )
     set_tests_properties(
         ${TEST_CLASS}
@@ -233,10 +442,11 @@ set(cmake_generated ${CMAKE_BINARY_DIR}/CMakeCache.txt
                     ${CMAKE_BINARY_DIR}/Testing
                     ${CMAKE_BINARY_DIR}/compile_commands.json
                     ${CMAKE_BINARY_DIR}/platform.h
-                    ${CMAKE_BINARY_DIR}/src/libmyproject.pc
-                    ${CMAKE_BINARY_DIR}/src/libmyproject.so
-                    ${CMAKE_BINARY_DIR}/src/myproject_selftest
+                    ${CMAKE_BINARY_DIR}/src/libzproject_pg.pc
+                    ${CMAKE_BINARY_DIR}/src/libzproject_pg.so
+                    ${CMAKE_BINARY_DIR}/src/zproject_pg_selftest
                     ${CMAKE_BINARY_DIR}/src/hello
+                    ${CMAKE_BINARY_DIR}/src/zproject_pg_selftest
 )
 
 add_custom_command(
@@ -261,8 +471,8 @@ message (STATUS "  C compiler        :   ${CMAKE_C_COMPILER}")
 message (STATUS "  Debug C flags     :   ${CMAKE_C_FLAGS_DEBUG} ${CMAKE_C_FLAGS}")
 message (STATUS "  Release C flags   :   ${CMAKE_C_FLAGS_RELEASE} ${CMAKE_C_FLAGS}")
 message (STATUS "  Build type        :   ${CMAKE_BUILD_TYPE}")
-message (STATUS "  Static build      :   ${MYPROJECT_BUILD_STATIC}")
-message (STATUS "  Shared build      :   ${MYPROJECT_BUILD_SHARED}")
+message (STATUS "  Static build      :   ${ZPROJECT_PG_BUILD_STATIC}")
+message (STATUS "  Shared build      :   ${ZPROJECT_PG_BUILD_SHARED}")
 IF (ENABLE_DRAFTS)
 message (STATUS "  Draft API         :   Yes")
 ELSE (ENABLE_DRAFTS)
